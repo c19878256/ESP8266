@@ -1,0 +1,101 @@
+# R: to launch the esptool firmware flasher:
+python2.7 esptool.py -h
+
+# Also R: in short, to put an ESP8266 board in programming mode:
+GPIO15 -> LOW
+GPIO2  -> HIGH
+GPIO0  -> pulled HIGH => normal operation
+       -> set LOW     => boot ROM inside ESP8266 comm over UART
+# aka, a switch to Gnd being pressed at power on put the ESP8266 in programming mode ;)
+# Nb: using esptool.py, even if GPIO0 is tied LOW, it 'll cause the firmware to run
+#     then, if the code reboots, it 'll auto re-enter the bootloader for another programming cycle
+#     -> in shorts: we can keep GPIO0 tied to Gnd while developing :D
+
+# overall setup:
+GPIO0 -> switch -> Gnd, pulled HIGH through 1k resistor to Vcc ( 3.3V )
+GPIO2 & CH_PD -> Vcc
+USB to UART Adapter providing 5V to the 3.3V regulator powering the chip
+RX & TX to Rx & Tx
+
+# to flash the firmware to the ESP8266:
+python2.7 esptool.py -p <SERIAL_PORT_NAME> write_flash 0x00 <firmware.bin>
+# ex:
+python2.7 esptool.py -p /dev/tty.usbserial-A50285BI -b 115200 write_flash 0x00000 ./../esp8266-micropython-vagrant/firmware-combined.bin
+# python2.7 esptool.py -p /dev/tty.usbserial-A50285BI -b 115200 write_flash 0x00 firmware-combined.bin
+# or stephanegarnier$ python2.7 esptool.py -p /dev/tty.usbserial-A50285BI -b 115200 write_flash 0x00000 firmware-combined.bin
+
+# also, for the ESP8266 ESP-01, don't forget to edit the esptool.py to make the following changes:
+# Maximum block sized for RAM and Flash writes, respectively. [ESP-01 esptool]
+    ESP_RAM_BLOCK   = 0x180
+    ESP_FLASH_BLOCK = 0x40
+
+# to connect to the ESP8266:
+screen /dev/tty.usbserial-A50285BI 115200
+
+# then, we can issue AT commands ( with the original AT firmware ) or issue python commands ( if running a PERL )
+# R: use Ctrl-M Ctrl-J to validate commands to be sent when using the original firmware
+
+
+
+## example of using some AT commands
+screen /dev/tty.usbserial-A50285BI 9600
+
+AT
+
+OK
+AT+GMR
+0018000902-AI03
+
+OK
+AT+CWMODE?
++CWMODE:3
+
+OK
+AT+IPR=115200
+
+ERROR
+AT+IPR="115200"
+
+ERROR
+AT+CWJAP="seedsdesign","jaimelesfraisesdesbois666"
+
+FAIL
+AT+CWJAP="Seedsdesign","jaimelesfraisesdesbois666"
+
+ERROR
+AT
+
+OK
+AT+CWJAP="Seedsdesign","jaimelesfraisesdesbois666"
+
+OK
+AT+CIFSRM 
+192.168.4.1
+192.168.1.10
+
+OK
+AT+CIFSR
+192.168.4.1
+192.168.1.10
+
+OK
+
+## example of using the MicroPython REPL
+screen /dev/tty.usbserial-A50285BI 9600
+
+print
+import pyb
+pin = pyb.Pin(0, pyb.Pin.OUT_PP)
+pin2 = pyb.Pin(2, pyb.Pin.OUT_PP)
+pin.value(1)
+pin.value(0)
+pin.high()
+pin2.high()
+pin.low()
+pin2.low()
+
+# Also:
+# esptool uses the RTS and DTR modem status lines to automatically enter the bootloader.
+# connect RTS to CH_PD (which is used as active-low reset) and DTR to GPIO0.
+#
+# GPIO15 has to be tied to Gnd , else the device just get stuck in the bootloader

@@ -1,0 +1,43 @@
+# R: to use the Vagrant VM:
+
+# starting it up ( if not already running ):
+vagrant up
+# ( to be run from the current dir )
+
+# logging to it:
+vagrant ssh
+
+# exiting from it
+exit
+
+# stopping it:
+vagrant halt
+
+# to make a file available outside of it:
+cp <whatever> /vagrant/
+# ( 'll appear in the current dir, outside of the VM )
+# Nb: thus, necessary to be run BEFORE halting a VM if it was used for compiling sutff ..
+
+
+####
+
+
+# Also, there are 2 version of the firmware:
+
+# the first provides a REPL ( Read-Eval-Print Loop ), aka is fully interactive
+
+# the second run some code on boot that may or may not provide REPL afterward ( depending on wheter it uses an infinite loop )
+
+
+####
+
+
+# R: to pack an firmware that 'll boot MicroPython code on boot ( and may provide REPL afterward ), the following commands are useful:
+# go to the main.py dir in the vagrant VM
+vagrant up; vagrant ssh; cd ~/micropython/esp8266/scripts/
+# do stuff to main.py
+(..)
+# go to the esp8266 MicroPython firmware dir & make the firmware
+cd ~/micropython/esp8266; make
+# copy the freshly compiled firmware outisde of the VM & then exit it & halt it
+cp ./build/firmware-combined.bin /vagrant/; exit; vagrant halt

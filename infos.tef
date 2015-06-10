@@ -1,0 +1,9 @@
+# R: if in trouble installing Python2.7 & stuff on Mac OS X Snow Leopard, here's what to do:
+
+sudo python2.7 get-pip.py
+# 'll install pip for Python2.7
+
+sudo python2.7 /usr/local/bin/pip install pyserial
+# 'll install pyserial for Python2.7 using pip
+
+# Also, R to DL & inqtall Python2.7 with the GUi installer DL-ed from the official website
